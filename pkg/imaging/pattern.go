@@ -4,6 +4,8 @@ import (
 	"errors"
 )
 
+type INamedPattern func() IPattern
+
 type IPattern interface {
 	validate() (bool, error)
 	Height() int
@@ -71,5 +73,10 @@ func FeatHorizontal() IPattern {
 
 func FeatDiagonal() IPattern {
 	p, _ := new([][]int{{1, -1}, {-1, 1}})
+	return p
+}
+
+func FeatInner() IPattern {
+	p, _ := new([][]int{{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}})
 	return p
 }

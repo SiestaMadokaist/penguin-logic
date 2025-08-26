@@ -16,11 +16,23 @@ type integral struct {
 }
 
 type IntegralImage interface {
-	FeatExtract(channel color.Channel, bound euclidean.IBound, pattern IPattern) []Feature
+	ApplyFeat(channel color.Channel, bound euclidean.IBound, pattern IPattern) int32
+	ExtractFeat(channel color.Channel, bound euclidean.IBound, pattern IPattern) []Feature
 	Calculate(channel color.Channel, bound euclidean.IBound) int32
 }
 
-func (i integral) FeatExtract(channel color.Channel, bound euclidean.IBound, pattern IPattern) []Feature {
+func (i integral) ApplyFeat(channel color.Channel, bound euclidean.IBound, pattern IPattern) int32 {
+	feats := i.ExtractFeat(channel, bound, pattern)
+	sum := int32(0)
+	for _, feat := range feats {
+		value := i.Calculate(channel, feat.Bound)
+		normalized := int32(feat.Multiplier) * value
+		sum += normalized
+	}
+	return sum
+}
+
+func (i integral) ExtractFeat(channel color.Channel, bound euclidean.IBound, pattern IPattern) []Feature {
 	split := Split(bound, pattern)
 	return split
 }

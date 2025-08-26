@@ -1,9 +1,11 @@
 package imaging
 
 import (
+	"fmt"
 	"image"
 	"os"
 
+	c "image/color"
 	_ "image/jpeg" // register JPEG format
 	_ "image/png"  // register PNG format
 
@@ -30,6 +32,7 @@ type Image interface {
 	Green(point euclidean.Point) color.Green
 	Blue(point euclidean.Point) color.Blue
 	Integral() (IntegralImage, error)
+	Extract(channel color.Channel) image.Image
 }
 
 func Load(path string) (Image, error) {
@@ -49,6 +52,39 @@ func Load(path string) (Image, error) {
 func New(i image.Image) Image {
 	store := memoize.Store()
 	return &image_{i, store}
+}
+
+func (i *image_) Extract(channel color.Channel) image.Image {
+	newImage := image.NewRGBA(i.i.Bounds())
+	for y := 0; y < newImage.Bounds().Dy(); y++ {
+		for x := 0; x < newImage.Bounds().Dx(); x++ {
+			coord := euclidean.P2(euclidean.X(x), euclidean.Y(y))
+			newColor := c.RGBA{}
+			// other := 0
+			switch channel {
+			case color.ChannelRed:
+				v := uint8(i.Red(coord) >> 8)
+				// newColor = c.RGBA{R: 255 - v, G: 255, B: 255, A: 255}
+				newColor = c.RGBA{R: 255 - v, A: 255}
+				// newColor = c.RGBA{R: v, G: v, B: v, A: 255}
+			case color.ChannelGreen:
+				v := uint8(i.Green(coord) >> 8)
+				// newColor = c.RGBA{G: 255 - v, R: 255, B: 255, A: 255}
+				newColor = c.RGBA{G: 255 - v, A: 255}
+				// newColor = c.RGBA{R: v, G: v, B: v, A: 255}
+			case color.ChannelBlue:
+				v := uint8(i.Blue(coord) >> 8)
+				// newColor = c.RGBA{B: 255 - v, G: 255, R: 255, A: 255}
+				newColor = c.RGBA{B: 255 - v, A: 255}
+				// newColor = c.RGBA{R: v, G: v, B: v, A: 255}
+			}
+			if (y+x)%100 == 0 {
+				fmt.Printf("x: %d, y: %d => %d\n", x, y, newColor)
+			}
+			newImage.Set(x, y, newColor)
+		}
+	}
+	return newImage
 }
 
 func (i *image_) Integral() (IntegralImage, error) {

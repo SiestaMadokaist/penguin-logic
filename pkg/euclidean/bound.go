@@ -31,6 +31,10 @@ func (b bound) ToString() string {
 	return fmt.Sprintf("TopLeft: %s, BottomRight: %s", b.topLeft.ToString(), b.bottomRight.ToString())
 }
 
+func (b bound) String() string {
+	return b.ToString()
+}
+
 func (b bound) TopLeft() Point {
 	return b.topLeft
 }
