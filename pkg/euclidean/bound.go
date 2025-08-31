@@ -1,6 +1,8 @@
 package euclidean
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type bound struct {
 	topLeft     Point
@@ -18,6 +20,10 @@ type IBound interface {
 	TopLeft() Point
 	BottomRight() Point
 	ToString() string
+	InnerCoords() []Point
+	Center() Point
+	ShiftNeg(p Point) IBound
+	ShiftPos(p Point) IBound
 }
 
 func Bound(topLeft, bottomRight Point) IBound {
@@ -25,6 +31,34 @@ func Bound(topLeft, bottomRight Point) IBound {
 		topLeft:     topLeft,
 		bottomRight: bottomRight,
 	}
+}
+
+func (b bound) ShiftNeg(p Point) IBound {
+	newTopLeft := b.topLeft.ShiftNeg(p)
+	newBottomRight := b.bottomRight.ShiftNeg(p)
+	return Bound(newTopLeft, newBottomRight)
+}
+
+func (b bound) ShiftPos(p Point) IBound {
+	newTopLeft := b.topLeft.ShiftPos(p)
+	newBottomRight := b.bottomRight.ShiftPos(p)
+	return Bound(newTopLeft, newBottomRight)
+}
+
+func (b bound) Center() Point {
+	centerX := (b.Left() + b.Right()) / 2
+	centerY := (b.Top() + b.Bottom()) / 2
+	return P2(centerX, centerY)
+}
+
+func (b bound) InnerCoords() []Point {
+	accumulator := []Point{}
+	for y := b.Top() + 1; y < b.Bottom(); y++ {
+		for x := b.Left() + 1; x < b.Right(); x++ {
+			accumulator = append(accumulator, P2(x, y))
+		}
+	}
+	return accumulator
 }
 
 func (b bound) ToString() string {

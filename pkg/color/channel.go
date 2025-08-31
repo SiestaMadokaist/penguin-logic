@@ -6,7 +6,12 @@ const (
 	ChannelRed Channel = iota
 	ChannelGreen
 	ChannelBlue
+	ChannelGray
 )
+
+func Channels() []Channel {
+	return []Channel{ChannelRed, ChannelGreen, ChannelBlue}
+}
 
 func (c Channel) String() string {
 	switch c {

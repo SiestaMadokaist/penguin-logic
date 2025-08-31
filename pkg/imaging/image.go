@@ -1,13 +1,12 @@
 package imaging
 
 import (
-	"fmt"
 	"image"
 	"os"
 
 	c "image/color"
 	_ "image/jpeg" // register JPEG format
-	_ "image/png"  // register PNG format
+	"image/png"
 
 	"github.com/ramadoka/penguin-logic/pkg/color"
 	"github.com/ramadoka/penguin-logic/pkg/euclidean"
@@ -32,6 +31,9 @@ type Image interface {
 	Green(point euclidean.Point) color.Green
 	Blue(point euclidean.Point) color.Blue
 	Integral() (IntegralImage, error)
+	Invert() Image
+	Crop(b euclidean.IBound) Image
+	Save(path string) error
 	Extract(channel color.Channel) image.Image
 }
 
@@ -54,6 +56,42 @@ func New(i image.Image) Image {
 	return &image_{i, store}
 }
 
+func (i *image_) Crop(bound euclidean.IBound) Image {
+	cropped := image.NewRGBA(image.Rect(0, 0, int(bound.Width()), int(bound.Height())))
+	inners := bound.InnerCoords()
+	for _, coord := range inners {
+		shifted := coord.ShiftNeg(bound.TopLeft())
+		cropped.Set(int(shifted.X), int(shifted.Y), i.i.At(int(coord.X), int(coord.Y)))
+	}
+	return New(cropped)
+}
+
+func (i *image_) Save(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return png.Encode(f, i.i)
+}
+
+func (i *image_) Invert() Image {
+	newImage := image.NewRGBA(i.i.Bounds())
+	for y := 0; y < newImage.Bounds().Dy(); y++ {
+		for x := 0; x < newImage.Bounds().Dx(); x++ {
+			// coord := euclidean.P2(euclidean.X(x), euclidean.Y(y))
+			oldColor := i.i.At(x, y)
+			r, g, b, a := oldColor.RGBA()
+			newColor := c.RGBA{R: 255 - uint8(r), G: 255 - uint8(g), B: 255 - uint8(b), A: uint8(a)}
+			newImage.Set(x, y, newColor)
+		}
+	}
+	return &image_{
+		newImage,
+		memoize.Store(),
+	}
+}
+
 func (i *image_) Extract(channel color.Channel) image.Image {
 	newImage := image.NewRGBA(i.i.Bounds())
 	for y := 0; y < newImage.Bounds().Dy(); y++ {
@@ -64,22 +102,13 @@ func (i *image_) Extract(channel color.Channel) image.Image {
 			switch channel {
 			case color.ChannelRed:
 				v := uint8(i.Red(coord) >> 8)
-				// newColor = c.RGBA{R: 255 - v, G: 255, B: 255, A: 255}
-				newColor = c.RGBA{R: 255 - v, A: 255}
-				// newColor = c.RGBA{R: v, G: v, B: v, A: 255}
+				newColor = c.RGBA{R: v, A: 255}
 			case color.ChannelGreen:
 				v := uint8(i.Green(coord) >> 8)
-				// newColor = c.RGBA{G: 255 - v, R: 255, B: 255, A: 255}
-				newColor = c.RGBA{G: 255 - v, A: 255}
-				// newColor = c.RGBA{R: v, G: v, B: v, A: 255}
+				newColor = c.RGBA{G: v, A: 255}
 			case color.ChannelBlue:
 				v := uint8(i.Blue(coord) >> 8)
-				// newColor = c.RGBA{B: 255 - v, G: 255, R: 255, A: 255}
-				newColor = c.RGBA{B: 255 - v, A: 255}
-				// newColor = c.RGBA{R: v, G: v, B: v, A: 255}
-			}
-			if (y+x)%100 == 0 {
-				fmt.Printf("x: %d, y: %d => %d\n", x, y, newColor)
+				newColor = c.RGBA{B: v, A: 255}
 			}
 			newImage.Set(x, y, newColor)
 		}

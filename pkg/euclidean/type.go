@@ -27,6 +27,10 @@ func (y Y) Sub(dy H) Y {
 	return y - Y(dy)
 }
 
+func (y Y) Neg() Y {
+	return Y(-y)
+}
+
 // not abs dist
 func (y Y) Dist(y1 Y) H {
 	return H(y - y1)
@@ -38,6 +42,10 @@ func (x X) Add(dx W) X {
 
 func (x X) Sub(dx W) X {
 	return x - X(dx)
+}
+
+func (x X) Neg() X {
+	return X(-x)
 }
 
 // not abs dist

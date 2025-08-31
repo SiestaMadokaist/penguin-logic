@@ -52,7 +52,7 @@ func (p pattern) Width() int {
 	return len(p[0])
 }
 
-func new(data [][]int) (IPattern, error) {
+func InitFeat(data [][]int) (IPattern, error) {
 	p := pattern(data)
 	valid, err := p.validate()
 	if valid {
@@ -62,21 +62,61 @@ func new(data [][]int) (IPattern, error) {
 }
 
 func FeatVertical() IPattern {
-	p, _ := new([][]int{{1}, {-1}})
+	p, _ := InitFeat([][]int{{1}, {-1}})
 	return p
 }
 
 func FeatHorizontal() IPattern {
-	p, _ := new([][]int{{1, -1}})
+	p, _ := InitFeat([][]int{{1, -1}})
 	return p
 }
 
 func FeatDiagonal() IPattern {
-	p, _ := new([][]int{{1, -1}, {-1, 1}})
+	p, _ := InitFeat([][]int{{1, -1}, {-1, 1}})
 	return p
 }
 
-func FeatInner() IPattern {
-	p, _ := new([][]int{{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}})
+func FeatInner3() IPattern {
+	p, _ := InitFeat([][]int{{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}})
+	return p
+}
+
+func FeatInner4() IPattern {
+	p, _ := InitFeat([][]int{{-1, -1, -1, -1}, {-1, 3, 3, -1}, {-1, 3, 3, -1}, {-1, -1, -1, -1}})
+	return p
+}
+
+func FeatDynamicHorizontal(size int) IPattern {
+	items := make([][]int, 1)
+	items[0] = make([]int, size)
+	for i := 0; i < size; i++ {
+		items[0][i] = 1
+	}
+	p, _ := InitFeat(items)
+	return p
+}
+
+func FeatDynamicVertical(size int) IPattern {
+	items := make([][]int, size)
+	for i := 0; i < size; i++ {
+		items[i] = make([]int, 1)
+		items[i][0] = 1
+	}
+	p, _ := InitFeat(items)
+	return p
+}
+
+func FeatInner5() IPattern {
+	neg := -1
+	pos := 0  // 8 * 1 = 8
+	pos3 := 2 // 4 * 3 * 1 = 12
+	pos4 := 4 // 1 * 4 * 1 = 4
+	p, _ := InitFeat([][]int{
+		{neg, neg, pos, neg, neg},
+		{neg, pos, pos3, pos, neg},
+		{pos, pos3, pos4, pos3, pos},
+		{neg, pos, pos3, pos, neg},
+		{neg, neg, pos, neg, neg},
+	})
 	return p
 }

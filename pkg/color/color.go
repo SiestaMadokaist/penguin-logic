@@ -3,7 +3,12 @@ package color
 type Red uint32
 type Green uint32
 type Blue uint32
+type Gray uint32
 type Alpha uint32
+
+func BW(u uint32) Gray {
+	return Gray(u)
+}
 
 func R(u uint32) Red {
 	return Red(u)

@@ -10,6 +10,18 @@ type Point struct {
 	Y Y
 }
 
+func (p Point) Eq(other Point) bool {
+	return p.X == other.X && p.Y == other.Y
+}
+
+func (p Point) ShiftPos(other Point) Point {
+	return Point{X: p.X + other.X, Y: p.Y + other.Y}
+}
+
+func (p Point) ShiftNeg(other Point) Point {
+	return Point{X: p.X - other.X, Y: p.Y - other.Y}
+}
+
 func (p Point) ToString() string {
 	return fmt.Sprintf("(%d, %d)", p.X, p.Y)
 }
